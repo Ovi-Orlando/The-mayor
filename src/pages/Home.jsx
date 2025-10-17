@@ -2,85 +2,68 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [peliculas, setPeliculas] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const [peliculaSeleccionada, setPeliculaSeleccionada] = useState(null);
 
   useEffect(() => {
     fetch("https://gist.githubusercontent.com/Ovi-Orlando/58715e8bdc303394122d0fbf4605faf9/raw/fa7f6f4373f09daaf4a937ac3d74a82df8675e20/gistfile1.txt")
       .then((res) => res.json())
-      .then((data) => {
-        setPeliculas(data);
-        setCargando(false);
-      })
-      .catch((err) => {
-        console.error("Error cargando JSON:", err);
-        setCargando(false);
-      });
+      .then((data) => setPeliculas(data))
+      .catch((err) => console.error("Error al cargar JSON:", err));
   }, []);
 
-  if (cargando) return <p style={{ padding: "2rem" }}>Cargando catálogo...</p>;
-
   return (
-    <div style={{ padding: "2rem", backgroundColor: "#000", color: "#fff", minHeight: "100vh" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>🎬 Catálogo de Películas</h1>
+    <div className="bg-black min-h-screen text-white p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center">🎬 The Mayor</h1>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "1.5rem",
-        }}
-      >
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {peliculas.map((peli) => (
           <div
             key={peli.id}
-            style={{
-              background: "#111",
-              borderRadius: "10px",
-              overflow: "hidden",
-              boxShadow: "0 4px 15px rgba(255,255,255,0.1)",
-              display: "flex",
-              flexDirection: "column",
-            }}
+            className="bg-neutral-900 rounded-xl overflow-hidden hover:scale-105 transition-transform cursor-pointer"
+            onClick={() => setPeliculaSeleccionada(peli)}
           >
-            <div style={{ flex: "1 1 auto", overflow: "hidden" }}>
-              <img
-                src={peli.imagen}
-                alt={peli.titulo}
-                style={{
-                  width: "100%",
-                  height: "380px",
-                  objectFit: "cover",
-                  objectPosition: "center",
-                }}
-              />
-            </div>
-            <div style={{ padding: "1rem", flex: "0 0 auto" }}>
-              <h2 style={{ fontSize: "1.3rem", marginBottom: "0.5rem" }}>{peli.titulo}</h2>
-              <p><strong>Género:</strong> {peli.género}</p>
-              <p><strong>Año:</strong> {peli.anio}</p>
-              <p style={{ fontSize: "0.9rem", color: "#ccc" }}>{peli.descripcion}</p>
-              <a
-                href={peli.vídeo || peli.video}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "inline-block",
-                  marginTop: "1rem",
-                  padding: "0.6rem 1.2rem",
-                  backgroundColor: "#e50914",
-                  color: "#fff",
-                  textDecoration: "none",
-                  borderRadius: "5px",
-                  fontWeight: "bold",
-                  textAlign: "center",
-                }}
-              >
-                ▶ Ver Película
-              </a>
+            <img
+              src={peli.imagen}
+              alt={peli.titulo}
+              className="w-full h-64 object-cover"
+            />
+            <div className="p-2 text-center">
+              <h2 className="text-lg font-semibold">{peli.titulo}</h2>
+              <p className="text-sm text-gray-400">{peli.genero} • {peli.anio}</p>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Modal tipo Netflix */}
+      {peliculaSeleccionada && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+          <div className="bg-neutral-900 rounded-2xl p-4 max-w-3xl w-full relative">
+            <button
+              onClick={() => setPeliculaSeleccionada(null)}
+              className="absolute top-2 right-2 text-white text-2xl"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-2xl font-bold mb-2">{peliculaSeleccionada.titulo}</h2>
+            <p className="text-gray-400 mb-4">{peliculaSeleccionada.descripcion}</p>
+
+            <div className="aspect-video mb-4">
+              <iframe
+                src={peliculaSeleccionada.vídeo.replace("details", "embed")}
+                title={peliculaSeleccionada.titulo}
+                allowFullScreen
+                className="w-full h-full rounded-lg"
+              ></iframe>
+            </div>
+
+            <div className="text-right text-gray-400 text-sm">
+              {peliculaSeleccionada.genero} • {peliculaSeleccionada.anio}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
